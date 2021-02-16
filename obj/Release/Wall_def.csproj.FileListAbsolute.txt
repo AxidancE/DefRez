@@ -1,7 +1,6 @@
 C:\Users\axida\source\repos\Wall_def\Wall_def\bin\Release\Wall_def.exe.config
 C:\Users\axida\source\repos\Wall_def\Wall_def\bin\Release\Wall_def.exe
 C:\Users\axida\source\repos\Wall_def\Wall_def\bin\Release\Wall_def.pdb
-C:\Users\axida\source\repos\Wall_def\Wall_def\bin\Release\AutoUpdater.NET.dll
 C:\Users\axida\source\repos\Wall_def\Wall_def\bin\Release\AutoUpdater.NET.pdb
 C:\Users\axida\source\repos\Wall_def\Wall_def\bin\Release\AutoUpdater.NET.xml
 C:\Users\axida\source\repos\Wall_def\Wall_def\obj\Release\Wall_def.csprojAssemblyReference.cache

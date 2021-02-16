@@ -18,7 +18,7 @@ namespace Wall_def
             comboBox1.SelectedIndex = 0;
             comboBox2.SelectedIndex = 0;
             AutoUpdater.Synchronous = true;
-            AutoUpdater.Start("https://raw.githubusercontent.com/AxidancE/DefRez/main/Version.xml");
+            AutoUpdater.Start("https://raw.githubusercontent.com/AxidancE/DefRez/main/Version.xml?token=ALSUODWGKQT7PHBAT5JC23LAFNNB6");
         }
 
         private Excel.Application xlApp;
