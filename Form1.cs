@@ -377,7 +377,9 @@ namespace Wall_def
             label1.Text = "Excel подключен";
             label1.ForeColor = System.Drawing.Color.Green;
             закрытьExcelToolStripMenuItem.Enabled = true;
-            дополнительноToolStripMenuItem.Enabled = true;
+            создатьСтолбецToolStripMenuItem.Enabled = true;
+            проверкаТаблицыToolStripMenuItem.Enabled = true;
+            показатьОкноExcelToolStripMenuItem.Enabled = true;
         }
 
         private void закрытьExcelToolStripMenuItem_Click(object sender, EventArgs e)
@@ -412,7 +414,10 @@ namespace Wall_def
             label1.Text = "Excel отключен";
             label1.ForeColor = System.Drawing.Color.OrangeRed;
             открытьExcelToolStripMenuItem.Enabled = true;
-            дополнительноToolStripMenuItem.Enabled = false;
+            создатьСтолбецToolStripMenuItem.Enabled = false;
+            проверкаТаблицыToolStripMenuItem.Enabled = false;
+            показатьОкноExcelToolStripMenuItem.Enabled = false;
+
 
         }
 
@@ -556,66 +561,9 @@ namespace Wall_def
 
         private void проверитьОбновленияToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnCheckForUpdateEvent;
+            AutoUpdater.Start("https://raw.githubusercontent.com/AxidancE/DefRez/main/Version.xml");
+            Console.WriteLine(1);
         }
 
-        private void AutoUpdaterOnCheckForUpdateEvent(UpdateInfoEventArgs args)
-        {
-            if (args.Error == null)
-            {
-                if (args.IsUpdateAvailable)
-                {
-                    DialogResult dialogResult;
-                    if (args.Mandatory.Value)
-                    {
-                        dialogResult =
-                            MessageBox.Show(
-                                $@"There is new version {args.CurrentVersion} available. You are using version {args.InstalledVersion}. This is required update. Press Ok to begin updating the application.", @"Update Available",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        dialogResult =
-                            MessageBox.Show(
-                                $@"There is new version {args.CurrentVersion} available. You are using version {
-                                        args.InstalledVersion
-                                    }. Do you want to update the application now?", @"Update Available",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Information);
-                    }
-
-                    // Uncomment the following line if you want to show standard update dialog instead.
-                    // AutoUpdater.ShowUpdateForm(args);
-
-                    if (dialogResult.Equals(DialogResult.Yes) || dialogResult.Equals(DialogResult.OK))
-                    {
-                        try
-                        {
-                            if (AutoUpdater.DownloadUpdate(args))
-                            {
-                                Application.Exit();
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            MessageBox.Show(exception.Message, exception.GetType().ToString(), MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
-                        }
-                    }
-                }
-                else
-                {
-                    MessageBox.Show(@"There is no update available please try again later.", @"No update available",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-            else
-            {
-                    MessageBox.Show(
-                        @"There is a problem reaching update server. Please check your internet connection and try again later.",
-                        @"Update Check Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
     }
 }

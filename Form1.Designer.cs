@@ -110,13 +110,13 @@
             this.проверкаТаблицыToolStripMenuItem,
             this.показатьОкноExcelToolStripMenuItem,
             this.остальноеToolStripMenuItem});
-            this.дополнительноToolStripMenuItem.Enabled = false;
             this.дополнительноToolStripMenuItem.Name = "дополнительноToolStripMenuItem";
             this.дополнительноToolStripMenuItem.Size = new System.Drawing.Size(107, 20);
             this.дополнительноToolStripMenuItem.Text = "Дополнительно";
             // 
             // создатьСтолбецToolStripMenuItem
             // 
+            this.создатьСтолбецToolStripMenuItem.Enabled = false;
             this.создатьСтолбецToolStripMenuItem.Name = "создатьСтолбецToolStripMenuItem";
             this.создатьСтолбецToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
             this.создатьСтолбецToolStripMenuItem.Text = "Создать столбец";
@@ -124,6 +124,7 @@
             // 
             // проверкаТаблицыToolStripMenuItem
             // 
+            this.проверкаТаблицыToolStripMenuItem.Enabled = false;
             this.проверкаТаблицыToolStripMenuItem.Name = "проверкаТаблицыToolStripMenuItem";
             this.проверкаТаблицыToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
             this.проверкаТаблицыToolStripMenuItem.Text = "Проверка таблицы";
@@ -131,6 +132,7 @@
             // 
             // показатьОкноExcelToolStripMenuItem
             // 
+            this.показатьОкноExcelToolStripMenuItem.Enabled = false;
             this.показатьОкноExcelToolStripMenuItem.Name = "показатьОкноExcelToolStripMenuItem";
             this.показатьОкноExcelToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
             this.показатьОкноExcelToolStripMenuItem.Text = "Показать окно Excel";
