@@ -559,11 +559,7 @@ namespace Wall_def
                 MessageBoxIcon.Information);
         }
 
-        private void проверитьОбновленияToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            AutoUpdater.Start("https://raw.githubusercontent.com/AxidancE/DefRez/main/Version.xml");
-            Console.WriteLine(1);
-        }
+        
 
     }
 }
