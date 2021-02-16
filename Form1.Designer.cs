@@ -43,7 +43,9 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.comboBox2 = new System.Windows.Forms.ComboBox();
+            this.остальноеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.оПрограммеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.проверитьОбновленияToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -107,7 +109,7 @@
             this.создатьСтолбецToolStripMenuItem,
             this.проверкаТаблицыToolStripMenuItem,
             this.показатьОкноExcelToolStripMenuItem,
-            this.оПрограммеToolStripMenuItem});
+            this.остальноеToolStripMenuItem});
             this.дополнительноToolStripMenuItem.Enabled = false;
             this.дополнительноToolStripMenuItem.Name = "дополнительноToolStripMenuItem";
             this.дополнительноToolStripMenuItem.Size = new System.Drawing.Size(107, 20);
@@ -169,12 +171,28 @@
             this.comboBox2.Size = new System.Drawing.Size(100, 21);
             this.comboBox2.TabIndex = 7;
             // 
+            // остальноеToolStripMenuItem
+            // 
+            this.остальноеToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.оПрограммеToolStripMenuItem,
+            this.проверитьОбновленияToolStripMenuItem});
+            this.остальноеToolStripMenuItem.Name = "остальноеToolStripMenuItem";
+            this.остальноеToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.остальноеToolStripMenuItem.Text = "Остальное";
+            // 
             // оПрограммеToolStripMenuItem
             // 
             this.оПрограммеToolStripMenuItem.Name = "оПрограммеToolStripMenuItem";
-            this.оПрограммеToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.оПрограммеToolStripMenuItem.Size = new System.Drawing.Size(204, 22);
             this.оПрограммеToolStripMenuItem.Text = "О программе";
-            this.оПрограммеToolStripMenuItem.Click += new System.EventHandler(this.оПрограммеToolStripMenuItem_Click);
+            this.оПрограммеToolStripMenuItem.Click += new System.EventHandler(this.оПрограммеToolStripMenuItem_Click_1);
+            // 
+            // проверитьОбновленияToolStripMenuItem
+            // 
+            this.проверитьОбновленияToolStripMenuItem.Name = "проверитьОбновленияToolStripMenuItem";
+            this.проверитьОбновленияToolStripMenuItem.Size = new System.Drawing.Size(204, 22);
+            this.проверитьОбновленияToolStripMenuItem.Text = "Проверить обновления";
+            this.проверитьОбновленияToolStripMenuItem.Click += new System.EventHandler(this.проверитьОбновленияToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -212,7 +230,9 @@
         private System.Windows.Forms.ToolStripMenuItem показатьОкноExcelToolStripMenuItem;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.ComboBox comboBox2;
+        private System.Windows.Forms.ToolStripMenuItem остальноеToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem оПрограммеToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem проверитьОбновленияToolStripMenuItem;
     }
 }
 
