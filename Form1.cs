@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -12,6 +14,7 @@ namespace Wall_def
 {
     public partial class Form1 : Form
     {
+        public int global1;
         public Form1()
         {
             InitializeComponent();
@@ -20,7 +23,11 @@ namespace Wall_def
             AutoUpdater.Synchronous = true;
             AutoUpdater.ShowSkipButton = false;
             AutoUpdater.ShowRemindLaterButton = false;
-            AutoUpdater.Start("https://raw.githubusercontent.com/AxidancE/DefRez/main/Version.xml?token=ALSUODXBXQMZJEIQVJZN3JLAFNPD2");
+            AutoUpdater.Start("https://raw.githubusercontent.com/AxidancE/DefRez/main/Version.xml");
+
+            backgroundWorker1.DoWork += new DoWorkEventHandler(backgroundWorker1_DoWork);
+            backgroundWorker1.ProgressChanged += new ProgressChangedEventHandler(backgroundWorker1_ProgressChanged);
+            backgroundWorker1.WorkerReportsProgress = true;
         }
 
         private Excel.Application xlApp;
@@ -45,13 +52,20 @@ namespace Wall_def
             string text = File.ReadAllText(path + @"\mark.cdm", System.Text.Encoding.GetEncoding(1251));
             string b = "";
             string TTC_F = File.ReadAllText(path + @"\Arrayed.txt", System.Text.Encoding.GetEncoding(1251));
-            Console.WriteLine(Defectes.UsedRange.Rows.Count);
-            Console.WriteLine(Defectes.UsedRange.Rows.Count - 5);
+            //Console.WriteLine(Defectes.UsedRange.Rows.Count);
+            //Console.WriteLine(Defectes.UsedRange.Rows.Count - 5);
+
+            int number_of_defs = Defectes.UsedRange.Rows.Count - 5;
+            
             //for (int j = 416; j <= 416; j++)//Defectes.UsedRange.Rows.Count-5
             for (int j = 1; j <= Defectes.UsedRange.Rows.Count - 5; j++)
             {                
                 b += $"#[{j}]" + "\n";
+                int n = j / (number_of_defs / 100 + 1);
+                String s = "Текстую " + n + "% ";
+                backgroundWorker1.ReportProgress(n, s); // Отправляем данные в ProgressChanged
             }
+            backgroundWorker1.ReportProgress(100, "Завершено.");
             TTC_F = TTC_F.Replace("#array_here", b);
 
             //for (int i = 416; i <= 416; i++)//i = 1
@@ -85,7 +99,7 @@ namespace Wall_def
                 Excel.Range X_Additional = Wall.Cells[V_find.Row, 5];
                 Excel.Range Y_Additional = Wall.Cells[H_find.Row, 6];
 
-                if(X_Additional.Value2 > X_Main_orig.Value2)
+                if(X_Additional.Value2 > X_Main_orig.Value2)//Заменить на "меньше"?
                 {
                     X_Main_orig = Wall.Cells[V_find.Row, 5];
                 }
@@ -311,13 +325,19 @@ namespace Wall_def
 
                     text = text.Replace("#" + OriginalName, TextToChange);
                 }
-
+                int n = i / (number_of_defs / 100 + 1);
+                String s = "Выполнение " + n + "% ";
+                backgroundWorker1.ReportProgress(n, s); // Отправляем данные в ProgressChanged backgroundWorker1.ReportProgress(100, "Выполнено.");
             }
 
             text = text.Replace("#Arrayed", TTC_F);
             File.WriteAllText(path + @"\mark_ch.cdm", text, Encoding.GetEncoding(1251));
-            //MessageBox.Show("Готово!");
             use_sheet(10);
+            backgroundWorker1.ReportProgress(100, "Выполнено.");
+            MessageBox.Show("Готово!",
+                "Отчет",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
 
         }
 
@@ -325,6 +345,7 @@ namespace Wall_def
 
         private void button1_Click(object sender, EventArgs e)
         {
+
             try
             {
                 main_prog();
@@ -335,6 +356,8 @@ namespace Wall_def
                 MessageBox.Show("Найдены несоответствия. \nДля проверки нажмите \"ОК\".", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);//Поменять ОК на 2 кнопки
                 проверкаТаблицыToolStripMenuItem.PerformClick();
             }
+
+            
         }
 
         private void use_sheet(int sheet_in_use)
@@ -431,6 +454,7 @@ namespace Wall_def
             {
                 MessageBox.Show("Excel Не открыт");
             }
+
         }
 
         private void проверкаТаблицыToolStripMenuItem_Click(object sender, EventArgs e)
@@ -461,8 +485,14 @@ namespace Wall_def
                 создатьСтолбецToolStripMenuItem.PerformClick();
             }
 
-            for (int k = 1; k <= Defectes_try_catch.UsedRange.Rows.Count - 5; k++)//i = 1
+            progressBar1.Value = 1;
+            progressBar1.Maximum = Defectes_try_catch.UsedRange.Rows.Count - 4;
+            int number_of_defs = Defectes_try_catch.UsedRange.Rows.Count - 5;
+            //Console.WriteLine(number_of_defs);
+            for (int k = 1; k <= number_of_defs; k++)//i = 1
             {
+                Console.WriteLine(k);
+                progressBar1.Value++;
                 Excel.Range Find_in_Cycle_try_catch = S_range_try_catch.Find(k);//207 - проверочный
                 try
                 {                   
@@ -510,17 +540,21 @@ namespace Wall_def
                     }
                     Errored_defect_numb.Add(k);
                 }
+
+                    int n = k / (number_of_defs / 100 + 1);
+                    Console.WriteLine(n);
+                    String s = "Проверка " + n + "% ";
+                    backgroundWorker1.ReportProgress(n, s); // Отправляем данные в ProgressChanged
+                
             }
+            backgroundWorker1.ReportProgress(100, "Проверено."); // Отправляем данные в ProgressChanged
 
             if (Errors_finded > 0)
             {
-
-
                 total_defs = $"Найдено - {Errors_finded} несоответствий.\n";
                 for (int i = 0; i < Errors_finded; i++)
                 {
-                    //Console.WriteLine();
-                    total_defs += $"\n{i + 1}) {Errored_defect_numb[i]} - {Errored_defect[i]}; ";
+                    total_defs += $"\n{i + 1}) {Errored_defect_numb[i]} - {Errored_defect[i]}; ";                    
                 }
                 MessageBox.Show(total_defs, "Отчет");
             }
@@ -528,6 +562,7 @@ namespace Wall_def
             {
                 MessageBox.Show("Несоответствий не найдено.", "Отчет", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 button1.Enabled = true;
+                button1.PerformClick();
             }
                 
         }
@@ -537,14 +572,22 @@ namespace Wall_def
             Excel.Worksheet Defectes_creating = (Excel.Worksheet)xlApp.Worksheets.get_Item(10);//Дефекты, поменять номер на тот что был в исходнике
             use_sheet(10);
             Excel.Range F_range_creating = Defectes_creating.get_Range("AI6", $"AI{Defectes_creating.UsedRange.Rows.Count}");//"A6", $"A{Defectes.UsedRange.Rows.Count}"
-            F_range_creating.Cells[1,1] = String.Format("'0.1");
+            F_range_creating.Cells[1,1] = String.Format("'0.1");            
+            
+            int number_of_defs = Defectes_creating.UsedRange.Rows.Count - 5;
 
-            
-            
-            for (int i = 2; i <= Defectes_creating.UsedRange.Rows.Count - 5; i++)//i = 1
+            Console.WriteLine(number_of_defs.ToString());
+
+            for (int i = 2; i <= number_of_defs; i++)//i = 1
             {
                 F_range_creating.Cells[i, 1] = i;
+
+                int n = (i-1) / (number_of_defs / 100 + 1);
+                String s = "Создание " + n + "% ";
+                backgroundWorker1.ReportProgress(n, s); // Отправляем данные в ProgressChanged 
             }
+            backgroundWorker1.ReportProgress(100, "Создано.");
+            MessageBox.Show("Столбец создан", "Отчет", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
 
@@ -559,7 +602,16 @@ namespace Wall_def
                 MessageBoxIcon.Information);
         }
 
-        
+        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            toolStripProgressBar1.Value = e.ProgressPercentage; // Меняю данные прогрессбара
+            toolStripStatusLabel1.Text = (String)e.UserState; // Меняю значение метки
+        }
 
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            main_prog(); // Вызываем метод с расчетами
+            // или прямо тут можно что-то считать =)
+        }
     }
 }

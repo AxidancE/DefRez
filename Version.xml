@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <item>
-    <version>1.0.1.0</version>
-    <url>https://github.com/AxidancE/DefRez/releases/download/V1.0.1/DefRez.zip</url>
+    <version>1.0.2.0</version>
+    <url>https://github.com/AxidancE/DefRez/releases/download/V1.0.2/DefRez.zip</url>
     <changelog>https://github.com/AxidancE/DefRez/releases</changelog>
     <mandatory>false</mandatory>
 </item>
