@@ -556,7 +556,19 @@ namespace Wall_def
                 {
                     total_defs += $"\n{i + 1}) {Errored_defect_numb[i]} - {Errored_defect[i]}; ";                    
                 }
-                MessageBox.Show(total_defs, "Отчет");
+                if(Errors_finded > 40)
+                {
+                    //System.IO.File.Create(Application.StartupPath.ToString() + @"\Отчеты");
+                    StreamWriter file = new StreamWriter(Application.StartupPath.ToString() + @"\Отчет\Отчёт.txt");
+                    file.Write(total_defs);
+                    file.Close();
+
+                    MessageBox.Show("Отчет создан в папке \"Отчёт\".", "Отчет");
+                }
+                else
+                {
+                    MessageBox.Show(total_defs, "Отчет");
+                }
             }
             else
             {
