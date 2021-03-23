@@ -65,7 +65,7 @@ namespace Wall_def
             }
             else if (comboBox1.SelectedIndex == 1)
             {
-                Var_vertical = 22;
+                Var_vertical = 22;                
                 Var_horizontal = 20;
                 Var_vert_x = 21;
                 Var_horiz_y = 23;
@@ -138,50 +138,226 @@ namespace Wall_def
 
                 Excel.Range X_Main_orig = Wall.Cells[H_find.Row, 5];// //Темно синий //X_main
                 Excel.Range Y_Main_orig = Wall.Cells[V_find.Row, 6];// //Бордовый //Y_main
-
-                Excel.Range X_Additional = Wall.Cells[V_find.Row, 5];
-                Excel.Range Y_Additional = Wall.Cells[H_find.Row, 6];
-
-                if (X_Additional.Value2 > X_Main_orig.Value2)//Заменить на "меньше"?
+                if (comboBox1.SelectedIndex == 1)
                 {
-                    X_Main_orig = Wall.Cells[V_find.Row, 5];
-                }
-
-                if (Y_Additional.Value2 > Y_Main_orig.Value2)
-                {
+                    X_Main_orig = Wall.Cells[H_find.Row, 5];
                     Y_Main_orig = Wall.Cells[H_find.Row, 6];
                 }
+                
+
+                    Excel.Range XH_Second_orig = Wall.Cells[H_find.Row, 7];
+                    Excel.Range YH_Second_orig = Wall.Cells[H_find.Row, 8];
+
+
+
+                    Excel.Range XV_Second_orig = Wall.Cells[V_find.Row, 5];
+                    Excel.Range YV_Second_orig = Wall.Cells[V_find.Row, 6];
+
+                    
+                    Excel.Range XV_Second_Additional = Wall.Cells[V_find.Row, 7];
+                    Excel.Range YV_Second_Additional = Wall.Cells[V_find.Row, 8];
+                    
+                    Excel.Range X_Additional = Wall.Cells[V_find.Row, 5];
+                    Excel.Range Y_Additional = Wall.Cells[H_find.Row, 6];
+                
+                
+
+                if (comboBox1.SelectedIndex == 0)
+                {
+                    if (X_Additional.Value2 > X_Main_orig.Value2)//Заменить на "меньше"?
+                    {
+                        X_Main_orig = Wall.Cells[V_find.Row, 5];
+                    }
+
+                    if (Y_Additional.Value2 > Y_Main_orig.Value2)
+                    {
+                        Y_Main_orig = Wall.Cells[H_find.Row, 6];
+                    }
+                }
+                    
 
                 double X_Main = Convert.ToInt32(X_Main_orig.Value2);
                 double Y_Main = Convert.ToInt32(Y_Main_orig.Value2);
+                
+                double XH_Second = Convert.ToInt32(XH_Second_orig.Value2);
+                double YH_Second = Convert.ToInt32(YH_Second_orig.Value2);
+
+                double XV_Second_Add = Convert.ToInt32(XV_Second_Additional.Value2);
+                double YV_Second_Add = Convert.ToInt32(YV_Second_Additional.Value2);
+
+                double XV_Second = Convert.ToInt32(XV_Second_orig.Value2);
+                double YV_Second = Convert.ToInt32(YV_Second_orig.Value2);
                 //Console.WriteLine($"X - {X_Main}; Y - {Y_Main}");
 
                 double Vert_x = Convert.ToInt32(Vert_x_orig.Value2);//27
                 double Horiz_y = Convert.ToInt32(Horiz_y_orig.Value2);
+
+                double dX_V = 0, dY_V = 0, dX_H = 0, dY_H = 0,
+                    x0_v = 0, x0_h = 0, y0_v = 0, y0_h = 0;
+                if (comboBox1.SelectedIndex == 1)
+                {
+                    
+                    if(XV_Second == X_Main && YV_Second == Y_Main)
+                    {
+                        XV_Second = XV_Second_Add;
+                        YV_Second = YV_Second_Add;
+                    }
+                    
+                    Console.WriteLine("///////////////////////////////////////////////////////////////");
+                    X_Main = convert_number(X_Main);
+                   Y_Main = convert_number(Y_Main);
+                   XH_Second = convert_number(XH_Second);
+                   YH_Second = convert_number(YH_Second);
+                   XV_Second = convert_number(XV_Second);
+                   YV_Second = convert_number(YV_Second);
+                   Vert_x = convert_number(Vert_x);
+                   Horiz_y = convert_number(Horiz_y);
+
+
+
+                    
+                    //x0|y0 - определяются через excel; || вводить (x1, y1)
+                    //xH_0 | yV_0 - аналогично; (xd, yd)
+                    //x0_v | y0_h - определение расстояния прямой проходящей по СВШ
+                    //IX.X | IX.Y - конечная точка (x2, y2)
+                    double const_aV = Vert_x,//От вертикали - горизонтальное расстояние
+                           const_aH = Horiz_y,//От горизонта - вертикальное расстояние
+
+                           x0, y0, xH_0, yH_0, xV_0, yV_0, 
+                           degV,
+                           degH,
+                           x1_v, y1_v, x1_h, y1_h,
+                           x2_v, y2_v, x2_h, y2_h;
+
+                    //x0 и y0 - начало пересечения свш
+                    x0 = X_Main;
+                    y0 = Y_Main;
+
+                    //Горизонтальный шов
+                    xH_0 = XV_Second;
+                    yH_0 = YV_Second;
+
+                    //Вертикальный шов
+                    xV_0 = XH_Second;
+                    yV_0 = YH_Second;
+                            
+
+
+                    //здесь  поиск углов СВШ
+
+                    degV = Find_deg(x0, y0, xV_0, yV_0);//113.9178
+                    degH = Find_deg(x0, y0, xH_0, yH_0);//211.6147
+
+                    Console.WriteLine($"||||||||||||||| {x0}-{y0}; {xH_0}-{yH_0}");
+
+                    Console.WriteLine($"{degV} : {degH}\n------------");
+                    Console.WriteLine($"{const_quarter(degV, 1, const_aV)} : {const_quarter(degH, 2, const_aV)}\n------------");
+                    //Console.WriteLine($"{const_quarter(degH, 1, const_aV)} : {const_quarter(degH, 2, const_aV)}\n------------");
+
+                    
+                    
+                    
+                    //Нужна эта 4-ка
+                    x0_h = Rotate_segment(x0, y0, x0 + Math.Abs(const_aV), degH, "x");//-92.0123
+                    y0_h = Rotate_segment(x0, y0, x0 + Math.Abs(const_aV), degH, "y");
+
+                    x0_v = Rotate_segment(x0, y0, x0 + Math.Abs(const_aH), degV, "x");//-92.0123
+                    y0_v = Rotate_segment(x0, y0, x0 + Math.Abs(const_aH), degV, "y");//208
+
+
+
+
+                    //Переменные для DX и DY размерных выносок 
+                    dX_V = Rotate_segment(0, 0, 3, degV, "x");
+                    dX_H = Rotate_segment(0, 0, 3, degH, "x");
+                    dY_H = Rotate_segment(0, 0, 3, degH, "y");
+                    dY_V = Rotate_segment(0, 0, 3, degV, "y");
+
+                    Console.WriteLine($"{x0_h} : {y0_h}");
+                    Console.WriteLine($"{x0_v} : {y0_v}\n------------");
+
+
+                    //Нахождение координаты относительно длин сторон от которых отступают (прога рисует линии как квадрат)
+                    x1_v = Rotate_segment(x0_v, y0_v, x0_v + Math.Abs(const_aV), const_quarter(degV, 1, const_aV), "x");//-98
+                    y1_v = Rotate_segment(x0_v, y0_v, x0_v + Math.Abs(const_aV), const_quarter(degV, 1, const_aV), "y");//205 //от вертикала
+
+                    x1_h = Rotate_segment(x0_h, y0_h, x0_h + Math.Abs(const_aH), const_quarter(degH, 2, const_aV), "x");//-92.0123
+                    y1_h = Rotate_segment(x0_h, y0_h, x0_h + Math.Abs(const_aH), const_quarter(degH, 2, const_aV), "y");//от горизонта
+
+                    Console.WriteLine($"{x1_h} : {y1_h}");
+                    Console.WriteLine($"{x1_v} : {y1_v}\n------------");
+
+                    x2_v = Rotate_segment(x1_v, y1_v, x1_v + const_aH, const_quarter(degV, 3, const_aV), "x");//-98
+                    y2_v = Rotate_segment(x1_v, y1_v, x1_v + const_aH, const_quarter(degV, 3, const_aV), "y");//205 //от вертикала
+
+                    x2_h = Rotate_segment(x1_h, y1_h, x1_h + const_aV, const_quarter(degH, 3, const_aV), "x");//-92.0123
+                    y2_h = Rotate_segment(x1_h, y1_h, x1_h + const_aV, const_quarter(degH, 3, const_aV), "y");//от горизонта
+
+
+                    Point A = new Point(x1_v, y1_v);
+                    Point B = new Point(x2_v, y2_v);
+                    Point C = new Point(x1_h, y1_h);
+                    Point D = new Point(x2_h, y2_h);
+
+                    Point IX = Intersection(A, B, C, D);
+
+                    Console.WriteLine("{0} {1}", IX.X, IX.Y);
+                    X_Main = IX.X;
+                    Y_Main = IX.Y;
+                }
+                else if(comboBox1.SelectedIndex == 0)
+                {
+                    X_Main = convert_number(X_Main);
+                    Y_Main = convert_number(Y_Main);
+                }
+
+                double convert_number(double a)
+                {
+                    a /= 100;
+                    return a;
+                }
 
                 ChangeText();
                 //text = text.Replace("#" + OriginalName, TextToChange_F);
 
                 string ChangeText()
                 {
-                    string AllTextered, AllText_T = "", AllText_Fo = "";
+                    string AllTextered, AllText_T = "", AllText_Fo = "", AllText_F = "", AllText_S = "";
 
-                    ChangeText_in_cycle("marker", 1, out string AllText_F);
-                    ChangeText_in_cycle("circle", 2, out string AllText_S);
-
-                    if (Vert_x != 0)
+                    if (comboBox1.SelectedIndex == 0)
                     {
-                        ChangeText_in_cycle("Horizon", 3, out AllText_T);
+                        ChangeText_in_cycle("marker", 1, out AllText_F);
+                        ChangeText_in_cycle("circle", 2, out AllText_S);
+
+                        if (Vert_x != 0)
+                        {
+                            ChangeText_in_cycle("Horizon", 3, out AllText_T);
+                        }
+
+                        if (Horiz_y != 0)
+                        {
+                            ChangeText_in_cycle("Vertical", 4, out AllText_Fo);
+                        }
                     }
-
-                    if (Horiz_y != 0)
+                    else //if(comboBox1.SelectedIndex == 0)
                     {
-                        ChangeText_in_cycle("Vertical", 4, out AllText_Fo);
+                        ChangeText_in_cycle("marker", 5, out AllText_F);
+                        ChangeText_in_cycle("circle", 6, out AllText_S);
+
+                        if (Vert_x != 0)
+                        {
+                            ChangeText_in_cycle("Horizon", 7, out AllText_T);
+                        }
+
+                        if (Horiz_y != 0)
+                        {
+                            ChangeText_in_cycle("Vertical", 8, out AllText_Fo);
+                        }
                     }
 
                     AllTextered = AllText_F + "\n" + AllText_S + "\n" + AllText_T + "\n" + AllText_Fo;
                     TTC_F = TTC_F.Replace($"#[{i}]", AllTextered);
-                    return TTC_F;
+                    return TTC_F;//Total Text Changed
                 }
 
                 void ChangeText_in_cycle(string TextToChange, int sw_case, out string AllText)
@@ -189,9 +365,24 @@ namespace Wall_def
                     AllText = "";
                     string OriginalName = TextToChange;
                     TextToChange = File.ReadAllText(path + @"\" + OriginalName + ".txt", System.Text.Encoding.GetEncoding(1251));
+                    double X_Converted, Y_Converted;
+                    if (comboBox1.SelectedIndex == 0)
+                    {
+                        X_Converted = (X_Main + Vert_x / 100); //5 - 27
+                        Y_Converted = (Y_Main + Horiz_y / 100); //6 - 29
+                    }
+                    else
+                    {
+                        X_Converted = (X_Main + Vert_x); //5 - 27
+                        Y_Converted = (Y_Main + Horiz_y); //6 - 29
+                    }
+                        
 
-                    double X_Converted = (X_Main + Vert_x) / 100; //5 - 27
-                    double Y_Converted = (Y_Main + Horiz_y) / 100; //6 - 29
+                    Console.WriteLine("____________________________________");
+                    Console.WriteLine(X_Main);
+                    Console.WriteLine(Y_Main);
+                    Console.WriteLine(X_Converted);
+                    Console.WriteLine(Y_Converted);
 
                     //Console.WriteLine(X_Converted);
 
@@ -199,7 +390,7 @@ namespace Wall_def
                     {
                         TextToChange = TextToChange.Replace("x = 50.0", "x = " + X_Converted);
                         TextToChange = TextToChange.Replace("y = 46.0", "y = " + Y_Converted);
-
+                        { 
                         if (Vert_x > 0 && Horiz_y > 0)
                         {
                             TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted + 2));
@@ -228,7 +419,7 @@ namespace Wall_def
                             TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted - 2));
                             TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted + 2));
                         }
-
+                    }
                         TextToChange = TextToChange.Replace("iTextItemParam.s = \"208\"", $"iTextItemParam.s = \"{Convert.ToString(Defect_number.Value2)}\"");
                         AllText = TextToChange;
                     }
@@ -272,91 +463,230 @@ namespace Wall_def
 
                         AllText = TextToChange;
                     }
+
+
+
+                    if (sw_case == 5)
+                    {
+                        TextToChange = TextToChange.Replace("x = 50.0", "x = " + X_Main);
+                        TextToChange = TextToChange.Replace("y = 46.0", "y = " + Y_Main);
+                        {
+                            if (Vert_x > 0 && Horiz_y > 0)
+                            {
+                                TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Main + 2));
+                                TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Main + 2));
+                                TextToChange = TextToChange.Replace("dirX = -1", "dirX = 1");
+                            }
+                            else if (Vert_x > 0 && Horiz_y < 0)
+                            {
+                                TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Main + 2));
+                                TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Main - 2));
+                                TextToChange = TextToChange.Replace("dirX = -1", "dirX = 1");
+                            }
+                            else if (Vert_x < 0 && Horiz_y < 0)
+                            {
+                                //Console.WriteLine(TextToChange);
+                                TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Main - 2));
+                                TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Main - 2));
+                            }
+                            else if (Vert_x < 0 && Horiz_y > 0)
+                            {
+                                TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Main - 2));
+                                TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Main + 2));
+                            }
+                            else if (Vert_x == 0 || Horiz_y == 0)
+                            {
+                                TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Main - 2));
+                                TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Main + 2));
+                            }
+                        }
+                        TextToChange = TextToChange.Replace("iTextItemParam.s = \"208\"", $"iTextItemParam.s = \"{Convert.ToString(Defect_number.Value2)}\"");
+                        AllText = TextToChange;
+                    }
+                    if (sw_case == 6) //Для округи с штриховкой
+                    {
+                        TextToChange = TextToChange.Replace("25.0", "" + X_Main);
+                        TextToChange = TextToChange.Replace("999.0", "" + Y_Main);
+                        TextToChange = TextToChange.Replace(
+                            "qwe",
+                            $"iDocument2D.ksArcByPoint({X_Main}, {Y_Main}, 0.25," +
+                            $"{X_Main - 0.25}, {Y_Main - 0.25}, " +
+                            $"{(X_Main + 0.25)}, {Y_Main + 0.25}, 1, 1 )");//Аналогично заменить здесь (2 окружности рисуется)
+
+                        TextToChange = TextToChange.Replace(
+                            "asd",
+                            $"iDocument2D.ksArcByPoint({X_Main}, {Y_Main}, 0.25," +
+                            $"{X_Main + 0.25}, {Y_Main + 0.25}, " +
+                            $"{(X_Main - 0.25)}, {Y_Main - 0.25}, 1, 1 )");
+                        AllText = TextToChange;
+                        //TextToChange = TextToChange.Replace("x = 48.0", "x = " + polka);
+                    }
+                    if (sw_case == 7)
+                    {
+                        Sw_cased(0);
+
+                        if (Vert_x != 0)
+                        {
+                            TextToChange = TextToChange.Replace("2317", "" + Math.Abs(Horiz_y * 100));
+                        }
+
+                        AllText = TextToChange;
+                    }
+                    if (sw_case == 8)
+                    {
+                        Sw_cased(1);
+
+                        if (Horiz_y != 0)
+                        {
+                            TextToChange = TextToChange.Replace("2317", "" + Math.Abs(Vert_x * 100));
+                        }
+
+                        AllText = TextToChange;
+                    }
+
+
                     string Sw_cased(int Straight)
                     {
+
                         
-                             TextToChange = TextToChange.Replace("11.11", "" + X_Main / 100);
-                            TextToChange = TextToChange.Replace("12.22", "" + Y_Main / 100);
+                        if(comboBox1.SelectedIndex == 0)
+                        {
+                            TextToChange = TextToChange.Replace("11.11", "" + X_Main);
+                            TextToChange = TextToChange.Replace("12.22", "" + Y_Main);
                             TextToChange = TextToChange.Replace("13.33", "" + X_Converted);
                             TextToChange = TextToChange.Replace("14.44", "" + Y_Converted);
 
 
-                        //Vert_x
-                        //Horiz_y
+                            //Vert_x
+                            //Horiz_y
+                            {
+                                if (Vert_x == 0 || Horiz_y == 0)
+                                {
+                                    //Console.WriteLine(0);
+                                    if (Straight == 0)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + 0.0);
+                                        TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 - 2.5));
+                                    }
+                                    if (Straight == 1)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 + 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    }
+                                }
+                                else if (Vert_x > 0 && Horiz_y > 0)
+                                {
+                                    //Console.WriteLine(1);
+                                    if (Straight == 0)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + 0.0);
+                                        TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 + 2.5));
+                                    }
+                                    if (Straight == 1)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 + 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    }
+                                }
+                                else if (Vert_x > 0 && Horiz_y < 0)
+                                {
+                                    //Console.WriteLine(2);
+                                    if (Straight == 0)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + 0.0);
+                                        TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 - 2.5));
+                                    }
+                                    if (Straight == 1)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 + 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    }
+                                }
+                                else if (Vert_x < 0 && Horiz_y < 0)
+                                {
+                                    //Console.WriteLine(3);
+                                    if (Straight == 0)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + 0.0);
+                                        TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 - 2.5));
+                                    }
+                                    if (Straight == 1)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 - 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    }
+                                }
+                                else if (Vert_x < 0 && Horiz_y > 0)
+                                {
+                                    //Console.WriteLine(4);
+                                    if (Straight == 0)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + 0.0);
+                                        TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 + 2.5));
+                                    }
+                                    if (Straight == 1)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 - 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    }
+                                }
+                            }
+                        }
 
-                        if (Vert_x == 0 || Horiz_y == 0)
+                        else //if (comboBox1.SelectedIndex == 1)
                         {
-                            //Console.WriteLine(0);
-                            if (Straight == 0)
+
+                            
+                            TextToChange = TextToChange.Replace("13.33", "" + X_Main);
+                            TextToChange = TextToChange.Replace("14.44", "" + Y_Main);
+                            
+
+
+                            //Vert_x
+                            //Horiz_y
                             {
-                                TextToChange = TextToChange.Replace("00.00", "" + 0.0);
-                                TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 - 2.5));
-                            }
-                            if (Straight == 1)
-                            {
-                                TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 + 2.5));
-                                TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    if (Straight == 0)
+                                    {
+                                        TextToChange = TextToChange.Replace("iLDimSourceParam.ps = 0", "iLDimSourceParam.ps = 3");
+                                        TextToChange = TextToChange.Replace("11.11", "" + x0_h);
+                                        TextToChange = TextToChange.Replace("12.22", "" + y0_h);
+
+
+                                        TextToChange = TextToChange.Replace("00.00", "" + dX_H);
+                                        TextToChange = TextToChange.Replace("01.01", "" + dY_H);
+                                    Console.WriteLine($"\n------------\n{dX_H} : {dY_H}");
+
+                                }
+                                    if (Straight == 1)
+                                    {   
+                                        TextToChange = TextToChange.Replace("iLDimSourceParam.ps = 1", "iLDimSourceParam.ps = 3");
+                                        TextToChange = TextToChange.Replace("11.11", "" + x0_v);
+                                        TextToChange = TextToChange.Replace("12.22", "" + y0_v);
+
+
+                                        TextToChange = TextToChange.Replace("00.00", "" + dX_V);
+                                        TextToChange = TextToChange.Replace("01.01", "" + dY_V);
+
+                                    Console.WriteLine($"\n------------\n{dX_V} : {dY_V}");
+                                }
+                                
                             }
                         }
-                        else if (Vert_x > 0 && Horiz_y > 0)
-                        {
-                            //Console.WriteLine(1);
-                            if (Straight == 0)
-                            {
-                                TextToChange = TextToChange.Replace("00.00", "" + 0.0);
-                                TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 + 2.5));
-                            }
-                            if (Straight == 1)
-                            {
-                                TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 + 2.5));
-                                TextToChange = TextToChange.Replace("01.01", "" + 0.0);
-                            }
-                        }
-                        else if (Vert_x > 0 && Horiz_y < 0)
-                        {
-                            //Console.WriteLine(2);
-                            if (Straight == 0)
-                            {
-                                TextToChange = TextToChange.Replace("00.00", "" + 0.0);
-                                TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 - 2.5));
-                            }
-                            if (Straight == 1)
-                            {
-                                TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 + 2.5));
-                                TextToChange = TextToChange.Replace("01.01", "" + 0.0);
-                            }
-                        }
-                        else if (Vert_x < 0 && Horiz_y < 0)
-                        {
-                            //Console.WriteLine(3);
-                            if (Straight == 0)
-                            {
-                                TextToChange = TextToChange.Replace("00.00", "" + 0.0);
-                                TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 - 2.5));
-                            }
-                            if (Straight == 1)
-                            {
-                                TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 - 2.5));
-                                TextToChange = TextToChange.Replace("01.01", "" + 0.0);
-                            }
-                        }
-                        else if (Vert_x < 0 && Horiz_y > 0)
-                        {
-                            //Console.WriteLine(4);
-                            if (Straight == 0)
-                            {
-                                TextToChange = TextToChange.Replace("00.00", "" + 0.0);
-                                TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 + 2.5));
-                            }
-                            if (Straight == 1)
-                            {
-                                TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 - 2.5));
-                                TextToChange = TextToChange.Replace("01.01", "" + 0.0);
-                            }
-                        }
+                             
 
                         return (TextToChange);
                     }
+
+
+
+
+
+
+
+
+
+
+
 
                     text = text.Replace("#" + OriginalName, TextToChange);
                 }
@@ -364,6 +694,15 @@ namespace Wall_def
                 String s = "Выполнение " + n + "% ";
                 backgroundWorker1.ReportProgress(n, s); // Отправляем данные в ProgressChanged backgroundWorker1.ReportProgress(100, "Выполнено.");
             }
+
+
+
+
+
+
+
+
+
 
             text = text.Replace("#Arrayed", TTC_F);
             File.WriteAllText(path + @"\mark_ch.cdm", text, Encoding.GetEncoding(1251));
@@ -548,7 +887,6 @@ namespace Wall_def
             //Console.WriteLine(number_of_defs);
             for (int k = 1; k <= number_of_defs; k++)//i = 1
             {
-                Console.WriteLine(k);
                 progressBar1.Value++;
                 Excel.Range Find_in_Cycle_try_catch = S_range_try_catch.Find(k);//207 - проверочный
                 try
@@ -678,5 +1016,140 @@ namespace Wall_def
             main_prog(); // Вызываем метод с расчетами
             // или прямо тут можно что-то считать =)
         }
+
+
+        public static double Find_deg(double x_0, double y_0, double xv_1, double yv_1)
+        {
+            double res_H;
+            //x_0 = -87.5451,
+            //y_0 = 198.0650,
+
+            //xv_1 = -93.5889,
+            //yv_1 = 211.7389,
+
+            //xh_1 = -135.7769,
+            //yh_1 = 168.3756,
+            res_H = (yv_1 - y_0) / (xv_1 - x_0);
+            res_H = RadianToDegree_circle(res_H);
+            res_H = Math.Round(res_H, 2);
+
+            if ((xv_1 - x_0) < 0 && (yv_1 - y_0) > 0)
+            {
+                res_H += 180;
+            }
+            else if ((xv_1 - x_0) < 0 && (yv_1 - y_0) < 0)
+            {
+                res_H += 180;
+            }
+            else if ((xv_1 - x_0) > 0 && (yv_1 - y_0) < 0)
+            {
+                res_H += 360;
+            }
+
+
+
+
+            double RadianToDegree_circle(double angle)
+            {
+                angle = Math.Atan(angle);
+                angle = angle * 180.0 / Math.PI;
+                return angle;
+            }
+
+
+            return res_H;
+        }
+
+        public static double Rotate_segment(double x_0, double y_0, double x_Rotate, double deg, string axis)
+        {
+            double x_2, y_2, res_H, res_F;
+
+            deg = DegreeToRadian(deg);
+            x_2 = x_0 + (x_Rotate - x_0) * Math.Cos(deg);// - ()
+            y_2 = y_0 + (x_Rotate - x_0) * Math.Sin(deg);
+
+
+            x_2 = Math.Round(x_2, 4);
+            y_2 = Math.Round(y_2, 4);
+
+
+            if (axis == "x")
+            {
+                return x_2;
+            }
+            else
+            {
+                return y_2;
+            }
+        }
+
+        public static double DegreeToRadian(double angle)
+        {
+            angle = angle * Math.PI / 180.0;
+            return angle;
+        }
+        //public
+        static private Point Intersection(Point A, Point B, Point C, Point D)
+        {
+            double xo = A.X, yo = A.Y;
+            double p = B.X - A.X, q = B.Y - A.Y;
+
+            double x1 = C.X, y1 = C.Y;
+            double p1 = D.X - C.X, q1 = D.Y - C.Y;
+
+            double x = (xo * q * p1 - x1 * q1 * p - yo * p * p1 + y1 * p * p1) /
+                (q * p1 - q1 * p);
+            double y = (yo * p * q1 - y1 * p1 * q - xo * q * q1 + x1 * q * q1) /
+                (p * q1 - p1 * q);
+
+            return new Point(x, y);
+        }
+        //left = x < 0; right = x > 0.
+        static public double const_quarter(double income_deg, int step, double X_Left_Right = 0)
+        {
+            double outcome_deg;
+            if (step == 1)
+            {
+                if (X_Left_Right > 0)
+                {
+                    outcome_deg = income_deg - 90;
+                }
+                else
+                {
+                    outcome_deg = income_deg + 90;
+                }
+            }
+            else if (step == 2)
+            {
+                if (X_Left_Right > 0)
+                {
+                    outcome_deg = income_deg + 90;
+                }
+                else
+                {
+                    outcome_deg = income_deg - 90;
+                }
+            }
+            else
+            {
+                outcome_deg = income_deg + 180;
+            }
+            return outcome_deg;
+        }
+
     }
+
+    class Point
+    {
+        public double X { get; set; }   
+        public double Y { get; set; }
+        public Point() { }
+        public Point(double x, double y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+
 }
+
