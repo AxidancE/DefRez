@@ -19,7 +19,7 @@ namespace Wall_def
         {
             InitializeComponent();
             comboBox1.SelectedIndex = 0;
-            comboBox2.SelectedIndex = 0;
+            
             AutoUpdater.Synchronous = true;
             AutoUpdater.ShowSkipButton = false;
             AutoUpdater.ShowRemindLaterButton = false;
@@ -42,30 +42,34 @@ namespace Wall_def
 
         public void main_prog()
         {
+            
             string Var_element = comboBox1.Text + ".Швы";
-            Excel.Worksheet Wall = (Excel.Worksheet)xlApp.Worksheets.get_Item(Var_element);//Стенка.швы (переделать на поиск по имени)
+            if (comboBox1.Text == "Днище_центр")
+            {
+                Var_element = "Днище.Швы";
+            }
+            Excel.Worksheet Wall = (Excel.Worksheet)xlApp.Worksheets.get_Item(Var_element);//Поиск по имени листа
             Excel.Worksheet Defectes = (Excel.Worksheet)xlApp.Worksheets.get_Item("Дефекты_1");//Дефекты, поменять номер на тот что был в исходнике
 
             int Var_vertical,
                 Var_horizontal,
                 Var_vert_x,
                 Var_horiz_y;
-            string Var_f_range, Var_f0_range;
+            string Var_f_range, Var_f0_range, Vert_string;
 
             if (comboBox1.SelectedIndex == 0)
             {
-                Var_vertical = 28;
-                Var_horizontal = 26;
+                Var_vertical = 26;
+                Var_horizontal = 28;
                 Var_vert_x = 27;
                 Var_horiz_y = 29;
 
                 Var_f_range = "B5";
                 Var_f0_range = "B";
-
             }
-            else if (comboBox1.SelectedIndex == 1)
+            else if (comboBox1.SelectedIndex == 1 || comboBox1.SelectedIndex == 2)
             {
-                Var_vertical = 22;                
+                Var_vertical = 22;
                 Var_horizontal = 20;
                 Var_vert_x = 21;
                 Var_horiz_y = 23;
@@ -84,9 +88,8 @@ namespace Wall_def
                 Var_f0_range = "B";
                 MessageBox.Show("Ошибка");
             }
-
             use_sheet("Дефекты_1");
-
+            //Console.WriteLine(Defectes.UsedRange.Rows.Count);
             Excel.Range S_range = xlApp.get_Range("AI6", $"AI{Defectes.UsedRange.Rows.Count}");//"A6", $"A{Defectes.UsedRange.Rows.Count}"
 
             string text = File.ReadAllText(path + @"\mark.cdm", System.Text.Encoding.GetEncoding(1251));
@@ -107,16 +110,20 @@ namespace Wall_def
             }
             backgroundWorker1.ReportProgress(100, "Завершено.");
             TTC_F = TTC_F.Replace("#array_here", b);
-
+            Excel.Range Find_in_Cycle;
             //for (int i = 416; i <= 416; i++)//i = 1
             for (int i = 1; i <= number_of_defs; i++)//i = 1
             {
-                Excel.Range Find_in_Cycle = S_range.Find(i);//207 - проверочный
-                                                            //Excel.Range Ser_number = Defectes.Cells[Find_in_Cycle.Row, 35];//Номер п|п
-
-                Excel.Range Defect_number = Defectes.Cells[Find_in_Cycle.Row, 6];//Номер дефекта
-
                 
+                Find_in_Cycle = S_range.Find(i);//207 - проверочный
+                                                //Excel.Range Ser_number = Defectes.Cells[Find_in_Cycle.Row, 35];//Номер п|п
+                if (i == 1)
+                {
+                    Find_in_Cycle = S_range.Find(0.1);
+                }
+
+                //Console.WriteLine(Find_in_Cycle.Value2);
+                Excel.Range Defect_number = Defectes.Cells[Find_in_Cycle.Row, 6];//Номер дефекта                
                 Excel.Range Vertical = Defectes.Cells[Find_in_Cycle.Row, Var_vertical];//Вертикаль
                 Excel.Range Horizon = Defectes.Cells[Find_in_Cycle.Row, Var_horizontal];//Горизонталь
                 Excel.Range Vert_x_orig = Defectes.Cells[Find_in_Cycle.Row, Var_vert_x];//Расстояние от начала вертикали
@@ -124,9 +131,11 @@ namespace Wall_def
 
                 use_sheet(Var_element);
                 Excel.Range F_range = Wall.get_Range(Var_f_range, Var_f0_range + Wall.UsedRange.Rows.Count);//c6
-
-                Excel.Range V_find = F_range.Find(Vertical);//26
-                Excel.Range H_find = F_range.Find(Horizon);//28
+                
+                Excel.Range V_find = F_range.Find(Vertical, Type.Missing, Type.Missing, 1, Type.Missing, Excel.XlSearchDirection.xlNext, true);//26
+                Excel.Range H_find = F_range.Find(Horizon, Type.Missing, Type.Missing, 1, Type.Missing, Excel.XlSearchDirection.xlNext, true);//28 //Type.Missing, s
+                //Console.WriteLine(Horizon.Value2);
+                //Console.WriteLine(H_find.Value2);
 
                 //Excel.Range F_Seam = Wall.Cells[V_find.Row, 2];//
                 //Excel.Range S_Seam = Wall.Cells[H_find.Row, 2];//
@@ -136,49 +145,94 @@ namespace Wall_def
                 //"У" дефекта любой, кроме - y1_V
                 //Console.WriteLine("I - " + i);
 
+                Excel.Range Construct_element = Defectes.Cells[Find_in_Cycle.Row, 3];
+                
+                //Основные привязки для начальной точки.
                 Excel.Range X_Main_orig = Wall.Cells[H_find.Row, 5];// //Темно синий //X_main
-                Excel.Range Y_Main_orig = Wall.Cells[V_find.Row, 6];// //Бордовый //Y_main
+                Excel.Range Y_Main_orig = Wall.Cells[H_find.Row, 6];// //Бордовый //Y_main //V_find - ориг
+                
+
+                //проверено
+                Excel.Range XH_Second_orig = Wall.Cells[H_find.Row, 7];
+                Excel.Range YH_Second_orig = Wall.Cells[H_find.Row, 8];
+
+                Excel.Range XV_Second_orig = Wall.Cells[V_find.Row, 5];
+                Excel.Range YV_Second_orig = Wall.Cells[V_find.Row, 6];
+
+                Excel.Range XV_Second_Additional = Wall.Cells[V_find.Row, 7];
+                Excel.Range YV_Second_Additional = Wall.Cells[V_find.Row, 8];
+
+
+                string Construct_element_str = Construct_element.Value2;
+                //Console.WriteLine("--------------------------------");
                 if (comboBox1.SelectedIndex == 1)
                 {
-                    X_Main_orig = Wall.Cells[H_find.Row, 5];
-                    Y_Main_orig = Wall.Cells[H_find.Row, 6];
+                    Console.WriteLine(Vertical.Value2);
+                    Vert_string = Vertical.Value2;
+                    if (Vert_string[0] != 'L')
+                    {
+                        Console.WriteLine("1)Worked!");
+                        
+
+                        X_Main_orig = Wall.Cells[H_find.Row, 7];
+                        Y_Main_orig = Wall.Cells[H_find.Row, 8];
+
+                        XH_Second_orig = Wall.Cells[H_find.Row, 5];
+                        YH_Second_orig = Wall.Cells[H_find.Row, 6];
+                        
+                        //Horiz_y_orig.Value2 = -Horiz_y_orig.Value2;
+                        //Vert_x_orig.Value2 = -Vert_x_orig.Value2;
+
+
+
+                        if (Vert_x_orig.Value2 <= 0)
+                        {
+                            XV_Second_orig = Wall.Cells[V_find.Row, 7];
+                            YV_Second_orig = Wall.Cells[V_find.Row, 8];
+                        }
+                        else
+                        {
+                            XV_Second_orig = Wall.Cells[V_find.Row, 5];
+                            YV_Second_orig = Wall.Cells[V_find.Row, 6];
+                        }
+                        
+                    }
                 }
-                
 
-                    Excel.Range XH_Second_orig = Wall.Cells[H_find.Row, 7];
-                    Excel.Range YH_Second_orig = Wall.Cells[H_find.Row, 8];
-
-
-
-                    Excel.Range XV_Second_orig = Wall.Cells[V_find.Row, 5];
-                    Excel.Range YV_Second_orig = Wall.Cells[V_find.Row, 6];
-
-                    
-                    Excel.Range XV_Second_Additional = Wall.Cells[V_find.Row, 7];
-                    Excel.Range YV_Second_Additional = Wall.Cells[V_find.Row, 8];
-                    
-                    Excel.Range X_Additional = Wall.Cells[V_find.Row, 5];
-                    Excel.Range Y_Additional = Wall.Cells[H_find.Row, 6];
-                
-                
+                Excel.Range X_Additional = Wall.Cells[V_find.Row, 5];
+                Excel.Range Y_Additional = Wall.Cells[H_find.Row, 6];
 
                 if (comboBox1.SelectedIndex == 0)
                 {
-                    if (X_Additional.Value2 > X_Main_orig.Value2)//Заменить на "меньше"?
-                    {
-                        X_Main_orig = Wall.Cells[V_find.Row, 5];
-                    }
+                    X_Main_orig = Wall.Cells[V_find.Row, 7];
+                    Y_Main_orig = Wall.Cells[H_find.Row, 8];
+                    //if (X_Additional.Value2 > X_Main_orig.Value2)//Заменить на "меньше"?
+                    //{
+                    //    X_Main_orig = Wall.Cells[V_find.Row, 5];
+                    //}
 
-                    if (Y_Additional.Value2 > Y_Main_orig.Value2)
-                    {
-                        Y_Main_orig = Wall.Cells[H_find.Row, 6];
-                    }
+                    //if (Y_Additional.Value2 > Y_Main_orig.Value2)
+                    //{
+                    //    Y_Main_orig = Wall.Cells[H_find.Row, 6];
+                    //}
                 }
-                    
+
 
                 double X_Main = Convert.ToInt32(X_Main_orig.Value2);
                 double Y_Main = Convert.ToInt32(Y_Main_orig.Value2);
-                
+                if(comboBox1.SelectedIndex == 1)
+                {
+                    if(X_Main == 0)
+                    {
+                        X_Main = 1;
+                    }
+                    if(Y_Main == 0)
+                    {
+                        Y_Main = 1;
+                    }
+                    
+                    
+                }
                 double XH_Second = Convert.ToInt32(XH_Second_orig.Value2);
                 double YH_Second = Convert.ToInt32(YH_Second_orig.Value2);
 
@@ -194,28 +248,27 @@ namespace Wall_def
 
                 double dX_V = 0, dY_V = 0, dX_H = 0, dY_H = 0,
                     x0_v = 0, x0_h = 0, y0_v = 0, y0_h = 0;
+                //&& asd != "Центральная часть днища"
+                
                 if (comboBox1.SelectedIndex == 1)
                 {
-                    
-                    if(XV_Second == X_Main && YV_Second == Y_Main)
+                    if (XV_Second == X_Main && YV_Second == Y_Main)
                     {
                         XV_Second = XV_Second_Add;
                         YV_Second = YV_Second_Add;
                     }
-                    
-                    Console.WriteLine("///////////////////////////////////////////////////////////////");
+
                     X_Main = convert_number(X_Main);
-                   Y_Main = convert_number(Y_Main);
-                   XH_Second = convert_number(XH_Second);
-                   YH_Second = convert_number(YH_Second);
-                   XV_Second = convert_number(XV_Second);
-                   YV_Second = convert_number(YV_Second);
-                   Vert_x = convert_number(Vert_x);
-                   Horiz_y = convert_number(Horiz_y);
+                    Y_Main = convert_number(Y_Main);
+                    XH_Second = convert_number(XH_Second);
+                    YH_Second = convert_number(YH_Second);
+                    XV_Second = convert_number(XV_Second);
+                    YV_Second = convert_number(YV_Second);
+                    Vert_x = convert_number(Vert_x);
+                    Horiz_y = convert_number(Horiz_y);
 
+                    Vert_x = -Vert_x; //Инверсия дефектов по горизонту
 
-
-                    
                     //x0|y0 - определяются через excel; || вводить (x1, y1)
                     //xH_0 | yV_0 - аналогично; (xd, yd)
                     //x0_v | y0_h - определение расстояния прямой проходящей по СВШ
@@ -223,59 +276,54 @@ namespace Wall_def
                     double const_aV = Vert_x,//От вертикали - горизонтальное расстояние
                            const_aH = Horiz_y,//От горизонта - вертикальное расстояние
 
-                           x0, y0, xH_0, yH_0, xV_0, yV_0, 
+                           x0, y0, xH_0, yH_0, xV_0, yV_0,
                            degV,
                            degH,
                            x1_v, y1_v, x1_h, y1_h,
                            x2_v, y2_v, x2_h, y2_h;
 
+                    if (const_aV == 0)
+                    {
+                        const_aV = -0.01;
+                    }
                     //x0 и y0 - начало пересечения свш
                     x0 = X_Main;
                     y0 = Y_Main;
 
-                    //Горизонтальный шов
+                    //Вертикальный шов
                     xH_0 = XV_Second;
                     yH_0 = YV_Second;
 
-                    //Вертикальный шов
+                    //Горизонтальный шов
                     xV_0 = XH_Second;
                     yV_0 = YH_Second;
-                            
-
 
                     //здесь  поиск углов СВШ
 
                     degV = Find_deg(x0, y0, xV_0, yV_0);//113.9178
                     degH = Find_deg(x0, y0, xH_0, yH_0);//211.6147
 
-                    Console.WriteLine($"||||||||||||||| {x0}-{y0}; {xH_0}-{yH_0}");
+                    //Console.WriteLine($"||||||||||||||| {x0}-{y0}; {xH_0}-{yH_0}");
 
-                    Console.WriteLine($"{degV} : {degH}\n------------");
-                    Console.WriteLine($"{const_quarter(degV, 1, const_aV)} : {const_quarter(degH, 2, const_aV)}\n------------");
+                    //Console.WriteLine($"{degV} : {degH}\n------------");
+                    //Console.WriteLine($"{const_quarter(degV, 1, const_aV)} : {const_quarter(degH, 2, const_aV)}\n------------");
                     //Console.WriteLine($"{const_quarter(degH, 1, const_aV)} : {const_quarter(degH, 2, const_aV)}\n------------");
 
-                    
-                    
-                    
-                    //Нужна эта 4-ка
+                    //Нужна эта 4-ка - ага, для чего?
                     x0_h = Rotate_segment(x0, y0, x0 + Math.Abs(const_aV), degH, "x");//-92.0123
                     y0_h = Rotate_segment(x0, y0, x0 + Math.Abs(const_aV), degH, "y");
 
                     x0_v = Rotate_segment(x0, y0, x0 + Math.Abs(const_aH), degV, "x");//-92.0123
                     y0_v = Rotate_segment(x0, y0, x0 + Math.Abs(const_aH), degV, "y");//208
 
-
-
-
-                    //Переменные для DX и DY размерных выносок 
+                    //Переменные для DX и DY размерных выносок
                     dX_V = Rotate_segment(0, 0, 3, degV, "x");
                     dX_H = Rotate_segment(0, 0, 3, degH, "x");
                     dY_H = Rotate_segment(0, 0, 3, degH, "y");
                     dY_V = Rotate_segment(0, 0, 3, degV, "y");
 
-                    Console.WriteLine($"{x0_h} : {y0_h}");
-                    Console.WriteLine($"{x0_v} : {y0_v}\n------------");
-
+                    //Console.WriteLine($"{x0_h} : {y0_h}");
+                    //Console.WriteLine($"{x0_v} : {y0_v}\n------------");
 
                     //Нахождение координаты относительно длин сторон от которых отступают (прога рисует линии как квадрат)
                     x1_v = Rotate_segment(x0_v, y0_v, x0_v + Math.Abs(const_aV), const_quarter(degV, 1, const_aV), "x");//-98
@@ -284,15 +332,14 @@ namespace Wall_def
                     x1_h = Rotate_segment(x0_h, y0_h, x0_h + Math.Abs(const_aH), const_quarter(degH, 2, const_aV), "x");//-92.0123
                     y1_h = Rotate_segment(x0_h, y0_h, x0_h + Math.Abs(const_aH), const_quarter(degH, 2, const_aV), "y");//от горизонта
 
-                    Console.WriteLine($"{x1_h} : {y1_h}");
-                    Console.WriteLine($"{x1_v} : {y1_v}\n------------");
+                    //Console.WriteLine($"{x1_h} : {y1_h}");
+                    //Console.WriteLine($"{x1_v} : {y1_v}\n------------");
 
                     x2_v = Rotate_segment(x1_v, y1_v, x1_v + const_aH, const_quarter(degV, 3, const_aV), "x");//-98
                     y2_v = Rotate_segment(x1_v, y1_v, x1_v + const_aH, const_quarter(degV, 3, const_aV), "y");//205 //от вертикала
 
                     x2_h = Rotate_segment(x1_h, y1_h, x1_h + const_aV, const_quarter(degH, 3, const_aV), "x");//-92.0123
                     y2_h = Rotate_segment(x1_h, y1_h, x1_h + const_aV, const_quarter(degH, 3, const_aV), "y");//от горизонта
-
 
                     Point A = new Point(x1_v, y1_v);
                     Point B = new Point(x2_v, y2_v);
@@ -301,16 +348,16 @@ namespace Wall_def
 
                     Point IX = Intersection(A, B, C, D);
 
-                    Console.WriteLine("{0} {1}", IX.X, IX.Y);
+                    //Console.WriteLine("{0} {1}", IX.X, IX.Y);
                     X_Main = IX.X;
                     Y_Main = IX.Y;
                 }
-                else if(comboBox1.SelectedIndex == 0)
+                else
                 {
                     X_Main = convert_number(X_Main);
                     Y_Main = convert_number(Y_Main);
                 }
-
+                
                 double convert_number(double a)
                 {
                     a /= 100;
@@ -324,13 +371,14 @@ namespace Wall_def
                 {
                     string AllTextered, AllText_T = "", AllText_Fo = "", AllText_F = "", AllText_S = "";
 
-                    if (comboBox1.SelectedIndex == 0)
+                    if (comboBox1.SelectedIndex == 0) 
                     {
                         ChangeText_in_cycle("marker", 1, out AllText_F);
                         ChangeText_in_cycle("circle", 2, out AllText_S);
 
                         if (Vert_x != 0)
                         {
+                            
                             ChangeText_in_cycle("Horizon", 3, out AllText_T);
                         }
 
@@ -339,18 +387,21 @@ namespace Wall_def
                             ChangeText_in_cycle("Vertical", 4, out AllText_Fo);
                         }
                     }
-                    else //if(comboBox1.SelectedIndex == 0)
+                    else //if(comboBox1.SelectedIndex == 1) // && asd != "Центральная часть днища"
                     {
                         ChangeText_in_cycle("marker", 5, out AllText_F);
                         ChangeText_in_cycle("circle", 6, out AllText_S);
-
-                        if (Vert_x != 0)
+                        Console.WriteLine(Vert_x);
+                        Console.WriteLine(Horiz_y);
+                        if (Horiz_y != 0 && Math.Abs(Horiz_y) != 0.01)
                         {
+                            Console.WriteLine("Worked 0");
                             ChangeText_in_cycle("Horizon", 7, out AllText_T);
                         }
 
-                        if (Horiz_y != 0)
+                        if (Vert_x != 0 && Math.Abs(Vert_x) != 0.01)
                         {
+                            Console.WriteLine("Worked 1");
                             ChangeText_in_cycle("Vertical", 8, out AllText_Fo);
                         }
                     }
@@ -366,23 +417,30 @@ namespace Wall_def
                     string OriginalName = TextToChange;
                     TextToChange = File.ReadAllText(path + @"\" + OriginalName + ".txt", System.Text.Encoding.GetEncoding(1251));
                     double X_Converted, Y_Converted;
+                    //Console.WriteLine("_------------------------Main_orig(H)------------------------");
+                    //Console.WriteLine(X_Main_orig.Value2);
+                    //Console.WriteLine(Y_Main_orig.Value2);
+                    //Console.WriteLine("_------------------------Vert_x------------------------");
+                    //Console.WriteLine(Vert_x);
+                    //Console.WriteLine("_------------------------Horiz_y------------------------");
+                    //Console.WriteLine(Horiz_y);
                     if (comboBox1.SelectedIndex == 0)
                     {
-                        X_Converted = (X_Main + Vert_x / 100); //5 - 27
-                        Y_Converted = (Y_Main + Horiz_y / 100); //6 - 29
+                            X_Converted = (X_Main + Vert_x / 100); //5 - 27
+                            Y_Converted = (Y_Main + Horiz_y / 100); //6 - 29
                     }
                     else
                     {
                         X_Converted = (X_Main + Vert_x); //5 - 27
                         Y_Converted = (Y_Main + Horiz_y); //6 - 29
                     }
-                        
+                    
 
-                    Console.WriteLine("____________________________________");
-                    Console.WriteLine(X_Main);
-                    Console.WriteLine(Y_Main);
-                    Console.WriteLine(X_Converted);
-                    Console.WriteLine(Y_Converted);
+                    //Console.WriteLine("____________________________________");
+                    //Console.WriteLine(X_Main);
+                    //Console.WriteLine(Y_Main);
+                    //Console.WriteLine(X_Converted);
+                    //Console.WriteLine(Y_Converted);
 
                     //Console.WriteLine(X_Converted);
 
@@ -390,36 +448,41 @@ namespace Wall_def
                     {
                         TextToChange = TextToChange.Replace("x = 50.0", "x = " + X_Converted);
                         TextToChange = TextToChange.Replace("y = 46.0", "y = " + Y_Converted);
-                        { 
-                        if (Vert_x > 0 && Horiz_y > 0)
                         {
-                            TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted + 2));
-                            TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted + 2));
-                            TextToChange = TextToChange.Replace("dirX = -1", "dirX = 1");
+                            if (Vert_x > 0 && Horiz_y > 0)
+                            {
+                                //Console.WriteLine("x > 0 & y > 0");
+                                TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted + 2));
+                                TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted + 2));
+                                TextToChange = TextToChange.Replace("dirX = -1", "dirX = 1");
+                            }
+                            else if (Vert_x > 0 && Horiz_y < 0)
+                            {
+                                //Console.WriteLine("x > 0 & y < 0");
+                                TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted + 2));
+                                TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted - 2));
+                                TextToChange = TextToChange.Replace("dirX = -1", "dirX = 1");
+                            }
+                            else if (Vert_x < 0 && Horiz_y < 0)
+                            {
+                                //Console.WriteLine("x < 0 & y < 0");
+                                //Console.WriteLine(TextToChange);
+                                TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted - 2));
+                                TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted - 2));
+                            }
+                            else if (Vert_x < 0 && Horiz_y > 0)
+                            {
+                                //Console.WriteLine("x < 0 & y > 0");
+                                TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted - 2));
+                                TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted + 2));
+                            }
+                            else if (Vert_x == 0 || Horiz_y == 0)
+                            {
+                                //Console.WriteLine("x = 0 || y = 0");
+                                TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted - 2));
+                                TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted + 2));
+                            }
                         }
-                        else if (Vert_x > 0 && Horiz_y < 0)
-                        {
-                            TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted + 2));
-                            TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted - 2));
-                            TextToChange = TextToChange.Replace("dirX = -1", "dirX = 1");
-                        }
-                        else if (Vert_x < 0 && Horiz_y < 0)
-                        {
-                            //Console.WriteLine(TextToChange);
-                            TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted - 2));
-                            TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted - 2));
-                        }
-                        else if (Vert_x < 0 && Horiz_y > 0)
-                        {
-                            TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted - 2));
-                            TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted + 2));
-                        }
-                        else if (Vert_x == 0 || Horiz_y == 0)
-                        {
-                            TextToChange = TextToChange.Replace("x = 48.0", "x = " + (X_Converted - 2));
-                            TextToChange = TextToChange.Replace("y = 44.0", "y = " + (Y_Converted + 2));
-                        }
-                    }
                         TextToChange = TextToChange.Replace("iTextItemParam.s = \"208\"", $"iTextItemParam.s = \"{Convert.ToString(Defect_number.Value2)}\"");
                         AllText = TextToChange;
                     }
@@ -443,29 +506,24 @@ namespace Wall_def
                     }
                     if (sw_case == 3)
                     {
+                        Console.WriteLine("sw_0");
                         Sw_cased(0);
-
                         if (Vert_x != 0)
                         {
                             TextToChange = TextToChange.Replace("2317", "" + Math.Abs(Vert_x));
                         }
-
                         AllText = TextToChange;
                     }
                     if (sw_case == 4)
                     {
+                        Console.WriteLine("sw_1");
                         Sw_cased(1);
-
                         if (Horiz_y != 0)
                         {
                             TextToChange = TextToChange.Replace("2317", "" + Math.Abs(Horiz_y));
                         }
-
                         AllText = TextToChange;
                     }
-
-
-
                     if (sw_case == 5)
                     {
                         TextToChange = TextToChange.Replace("x = 50.0", "x = " + X_Main);
@@ -523,9 +581,10 @@ namespace Wall_def
                     }
                     if (sw_case == 7)
                     {
+                        //Console.WriteLine(7);
                         Sw_cased(0);
 
-                        if (Vert_x != 0)
+                        if (Vert_x != 0 && Vert_x != 1)
                         {
                             TextToChange = TextToChange.Replace("2317", "" + Math.Abs(Horiz_y * 100));
                         }
@@ -534,29 +593,27 @@ namespace Wall_def
                     }
                     if (sw_case == 8)
                     {
+                        //Console.WriteLine(8);
                         Sw_cased(1);
 
-                        if (Horiz_y != 0)
+                        if (Horiz_y != 0 && Horiz_y != 1)
                         {
+                            //Console.WriteLine("1" + Vert_x);
                             TextToChange = TextToChange.Replace("2317", "" + Math.Abs(Vert_x * 100));
                         }
 
                         AllText = TextToChange;
                     }
 
-
                     string Sw_cased(int Straight)
                     {
-
-                        
-                        if(comboBox1.SelectedIndex == 0)
+                        if (comboBox1.SelectedIndex == 0)
                         {
                             TextToChange = TextToChange.Replace("11.11", "" + X_Main);
                             TextToChange = TextToChange.Replace("12.22", "" + Y_Main);
                             TextToChange = TextToChange.Replace("13.33", "" + X_Converted);
                             TextToChange = TextToChange.Replace("14.44", "" + Y_Converted);
-
-
+                            //Настройки указателей привязок
                             //Vert_x
                             //Horiz_y
                             {
@@ -566,17 +623,18 @@ namespace Wall_def
                                     if (Straight == 0)
                                     {
                                         TextToChange = TextToChange.Replace("00.00", "" + 0.0);
-                                        TextToChange = TextToChange.Replace("01.01", "" + (Horiz_y / 100 - 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + (-2.5));
                                     }
                                     if (Straight == 1)
                                     {
-                                        TextToChange = TextToChange.Replace("00.00", "" + (Vert_x / 100 + 2.5));
+                                        TextToChange = TextToChange.Replace("00.00", "" + 2.5);
                                         TextToChange = TextToChange.Replace("01.01", "" + 0.0);
                                     }
                                 }
                                 else if (Vert_x > 0 && Horiz_y > 0)
                                 {
                                     //Console.WriteLine(1);
+                                    //Console.WriteLine(Horiz_y);
                                     if (Straight == 0)
                                     {
                                         TextToChange = TextToChange.Replace("00.00", "" + 0.0);
@@ -604,7 +662,7 @@ namespace Wall_def
                                 }
                                 else if (Vert_x < 0 && Horiz_y < 0)
                                 {
-                                    //Console.WriteLine(3);
+                                   //Console.WriteLine(3);
                                     if (Straight == 0)
                                     {
                                         TextToChange = TextToChange.Replace("00.00", "" + 0.0);
@@ -632,61 +690,124 @@ namespace Wall_def
                                 }
                             }
                         }
-
-                        else //if (comboBox1.SelectedIndex == 1)
+                        else if (comboBox1.SelectedIndex == 1)
                         {
-
-                            
                             TextToChange = TextToChange.Replace("13.33", "" + X_Main);
                             TextToChange = TextToChange.Replace("14.44", "" + Y_Main);
-                            
-
 
                             //Vert_x
                             //Horiz_y
                             {
-                                    if (Straight == 0)
-                                    {
-                                        TextToChange = TextToChange.Replace("iLDimSourceParam.ps = 0", "iLDimSourceParam.ps = 3");
-                                        TextToChange = TextToChange.Replace("11.11", "" + x0_h);
-                                        TextToChange = TextToChange.Replace("12.22", "" + y0_h);
+                                if (Straight == 0)
+                                {
+                                    TextToChange = TextToChange.Replace("iLDimSourceParam.ps = 0", "iLDimSourceParam.ps = 3");
+                                    TextToChange = TextToChange.Replace("11.11", "" + x0_h);
+                                    TextToChange = TextToChange.Replace("12.22", "" + y0_h);
 
-
-                                        TextToChange = TextToChange.Replace("00.00", "" + dX_H);
-                                        TextToChange = TextToChange.Replace("01.01", "" + dY_H);
-                                    Console.WriteLine($"\n------------\n{dX_H} : {dY_H}");
-
+                                    TextToChange = TextToChange.Replace("00.00", "" + dX_H);
+                                    TextToChange = TextToChange.Replace("01.01", "" + dY_H);
+                                    //Console.WriteLine($"\n------------\n{dX_H} : {dY_H}");
                                 }
-                                    if (Straight == 1)
-                                    {   
-                                        TextToChange = TextToChange.Replace("iLDimSourceParam.ps = 1", "iLDimSourceParam.ps = 3");
-                                        TextToChange = TextToChange.Replace("11.11", "" + x0_v);
-                                        TextToChange = TextToChange.Replace("12.22", "" + y0_v);
+                                if (Straight == 1)
+                                {
+                                    TextToChange = TextToChange.Replace("iLDimSourceParam.ps = 1", "iLDimSourceParam.ps = 3");
+                                    TextToChange = TextToChange.Replace("11.11", "" + x0_v);
+                                    TextToChange = TextToChange.Replace("12.22", "" + y0_v);
 
+                                    TextToChange = TextToChange.Replace("00.00", "" + dX_V);
+                                    TextToChange = TextToChange.Replace("01.01", "" + dY_V);
 
-                                        TextToChange = TextToChange.Replace("00.00", "" + dX_V);
-                                        TextToChange = TextToChange.Replace("01.01", "" + dY_V);
-
-                                    Console.WriteLine($"\n------------\n{dX_V} : {dY_V}");
+                                    //Console.WriteLine($"\n------------\n{dX_V} : {dY_V}");
                                 }
-                                
                             }
                         }
-                             
+                        else
+                        {
+                            Console.WriteLine("------------");
+                            TextToChange = TextToChange.Replace("11.11", "" + X_Main);
+                            TextToChange = TextToChange.Replace("12.22", "" + Y_Main);
+                            TextToChange = TextToChange.Replace("13.33", "" + X_Converted);
+                            TextToChange = TextToChange.Replace("14.44", "" + Y_Converted);
+
+                            //Vert_x
+                            //Horiz_y
+                            {
+                                if (Vert_x == 0 || Horiz_y == 0)
+                                {
+                                    Console.WriteLine(0);
+                                    if (Straight == 0)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + 0.0);
+                                        TextToChange = TextToChange.Replace("01.01", "" + (-Vert_x / 100 - 2.5));
+                                    }
+                                    if (Straight == 1)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + (Horiz_y / 100 + 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    }
+                                }
+                                else if (Vert_x > 0 && Horiz_y > 0)
+                                {
+                                    Console.WriteLine(1);
+                                    if (Straight == 0)//y
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + 0.0);
+                                        TextToChange = TextToChange.Replace("01.01", "" + (-Vert_x / 100 - 2.5));
+                                    }
+                                    if (Straight == 1)//x
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + (Horiz_y / 100 + 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    }
+                                }
+                                else if (Vert_x > 0 && Horiz_y < 0)
+                                {
+                                    Console.WriteLine(2);
+                                    if (Straight == 0)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + 0.0);
+                                        TextToChange = TextToChange.Replace("01.01", "" + (-Vert_x / 100 - 2.5));
+                                    }
+                                    if (Straight == 1)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + (Horiz_y / 100 - 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    }
+                                }
+                                else if (Vert_x < 0 && Horiz_y < 0)
+                                {
+                                    Console.WriteLine(3);
+                                    if (Straight == 0)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + 0.0);
+                                        TextToChange = TextToChange.Replace("01.01", "" + (-Vert_x / 100 + 2.5));
+                                    }
+                                    if (Straight == 1)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + (Horiz_y / 100 - 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    }
+                                }
+                                else if (Vert_x < 0 && Horiz_y > 0)
+                                {
+                                    Console.WriteLine(4);
+                                    if (Straight == 0)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + 0.0);
+                                        TextToChange = TextToChange.Replace("01.01", "" + (-Vert_x / 100 + 2.5));
+                                    }
+                                    if (Straight == 1)
+                                    {
+                                        TextToChange = TextToChange.Replace("00.00", "" + (Horiz_y / 100 + 2.5));
+                                        TextToChange = TextToChange.Replace("01.01", "" + 0.0);
+                                    }
+                                }
+                                Console.WriteLine("------------\n");
+                            }
+                        }
 
                         return (TextToChange);
                     }
-
-
-
-
-
-
-
-
-
-
-
 
                     text = text.Replace("#" + OriginalName, TextToChange);
                 }
@@ -694,15 +815,6 @@ namespace Wall_def
                 String s = "Выполнение " + n + "% ";
                 backgroundWorker1.ReportProgress(n, s); // Отправляем данные в ProgressChanged backgroundWorker1.ReportProgress(100, "Выполнено.");
             }
-
-
-
-
-
-
-
-
-
 
             text = text.Replace("#Arrayed", TTC_F);
             File.WriteAllText(path + @"\mark_ch.cdm", text, Encoding.GetEncoding(1251));
@@ -717,14 +829,15 @@ namespace Wall_def
         private void button1_Click(object sender, EventArgs e)
         {
             try
-            {
+            {                
                 main_prog();
+                
             }
             catch (Exception)
             {
                 button1.Enabled = false;
                 MessageBox.Show("Найдены несоответствия. \nДля проверки нажмите \"ОК\".", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);//Поменять ОК на 2 кнопки
-                проверкаТаблицыToolStripMenuItem.PerformClick();
+                CheckTable();
             }
         }
 
@@ -824,152 +937,163 @@ namespace Wall_def
 
         private void проверкаТаблицыToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            CheckTable();
+        }
 
-            string Var_element = comboBox1.Text + ".Швы";
-            //Создавать новый текстовый, а не выводить в сообщении.
-            int Errors_finded = 0;
-            int Error_find_prev = 0;
-            string total_defs;
-            List<string> Errored_defect = new List<string> { };
-            List<int> Errored_defect_numb = new List<int> { };
-            string Var_f_range, Var_f0_range;
-            int Var_horizontal, Var_vertical;
-            if (comboBox1.SelectedIndex == 0)
+        private void CheckTable()
+        {
+            
+                
+                string Var_element = comboBox1.Text + ".Швы";
+                if (comboBox1.Text == "Днище_центр")
             {
-                Var_vertical = 28;
-                Var_horizontal = 26;                
-
-                Var_f_range = "B5";
-                Var_f0_range = "B";
-
+                Var_element = "Днище.Швы";
             }
-            else if (comboBox1.SelectedIndex == 1)
-            {
-                Var_vertical = 22;
-                Var_horizontal = 20;                
-
-                Var_f_range = "C6";
-                Var_f0_range = "C";
-            }
-            else
-            {
-                Var_horizontal = 0;
-                Var_vertical = 0;
-
-                Var_f_range = "B6";
-                Var_f0_range = "B";
-                MessageBox.Show("Ошибка");
-            }
-
-
-            Excel.Worksheet Defectes_try_catch = (Excel.Worksheet)xlApp.Worksheets.get_Item("Дефекты_1");//Дефекты, поменять номер на тот что был в исходнике
-            Excel.Worksheet Wall_try_catch = (Excel.Worksheet)xlApp.Worksheets.get_Item(Var_element);//Стенка.швы (переделать на поиск по имени)
-            use_sheet("Дефекты_1");
-            Excel.Range S_range_try_catch = xlApp.get_Range("AI6", $"AI{Defectes_try_catch.UsedRange.Rows.Count}");//"A6", $"A{Defectes.UsedRange.Rows.Count}"
-
-            use_sheet(Var_element);
-            Excel.Range F_range_try_catch = Wall_try_catch.get_Range(Var_f_range, Var_f0_range + Wall_try_catch.UsedRange.Rows.Count);
-
-            try
-            {
-                Excel.Range Find_in_Cycle_try_catch = S_range_try_catch.Find(2);//207 - проверочный
-                Excel.Range Vertical_try_catch = Defectes_try_catch.Cells[Find_in_Cycle_try_catch.Row, Var_horizontal];
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("Не найден поисковой столбец. Создание столбца...", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                создатьСтолбецToolStripMenuItem.PerformClick();
-            }
-
-            progressBar1.Value = 1;
-            progressBar1.Maximum = Defectes_try_catch.UsedRange.Rows.Count - 4;
-            int number_of_defs = Defectes_try_catch.UsedRange.Rows.Count - 5;
-            //Console.WriteLine(number_of_defs);
-            for (int k = 1; k <= number_of_defs; k++)//i = 1
-            {
-                progressBar1.Value++;
-                Excel.Range Find_in_Cycle_try_catch = S_range_try_catch.Find(k);//207 - проверочный
-                try
+                //Создавать новый текстовый, а не выводить в сообщении.
+                int Errors_finded = 0;
+                int Error_find_prev = 0;
+                string total_defs;
+                List<string> Errored_defect = new List<string> { };
+                List<int> Errored_defect_numb = new List<int> { };
+                string Var_f_range, Var_f0_range;
+                int Var_horizontal, Var_vertical;
+                if (comboBox1.SelectedIndex == 0)
                 {
-                    Excel.Range Vertical_try_catch = Defectes_try_catch.Cells[Find_in_Cycle_try_catch.Row, Var_horizontal];//Вертикаль
-                    Excel.Range V_find_try_catch = F_range_try_catch.Find(Vertical_try_catch);//26
-                    Excel.Range Y_Main_orig_try_catch = Wall_try_catch.Cells[V_find_try_catch.Row, 6];// //Бордовый //Y_main
+                    Var_vertical = 28;
+                    Var_horizontal = 26;
+
+                    Var_f_range = "B5";
+                    Var_f0_range = "B";
                 }
-                catch (Exception)
+                else if (comboBox1.SelectedIndex == 1 || comboBox1.SelectedIndex == 2)
                 {
-                    Excel.Range Vertical_try_catch = Defectes_try_catch.Cells[Find_in_Cycle_try_catch.Row, Var_horizontal];
-                    Errors_finded++;
-                    if (Vertical_try_catch.Value2 == null)
-                    {
-                        Errored_defect.Add("Нет значения");
-                    }
-                    else
-                    {
-                        Errored_defect.Add(Vertical_try_catch.Value2);
-                    }
-                    Errored_defect_numb.Add(k);
-                    Error_find_prev = 1;
-                }
-                if (Error_find_prev == 1)
-                {
-                    Error_find_prev = 0;
-                    continue;
-                }
-                try
-                {
-                    Excel.Range Vertical_try_catch = Defectes_try_catch.Cells[Find_in_Cycle_try_catch.Row, Var_vertical];//Вертикаль
-                    Excel.Range V_find_try_catch = F_range_try_catch.Find(Vertical_try_catch);//26
-                    Excel.Range Y_Main_orig_try_catch = Wall_try_catch.Cells[V_find_try_catch.Row, 6];// //Бордовый //Y_main
-                }
-                catch (Exception)
-                {
-                    Excel.Range Vertical_try_catch = Defectes_try_catch.Cells[Find_in_Cycle_try_catch.Row, Var_vertical];
-                    Errors_finded++;
-                    if (Vertical_try_catch.Value2 == null)
-                    {
-                        Errored_defect.Add("Нет значения");
-                    }
-                    else
-                    {
-                        Errored_defect.Add(Vertical_try_catch.Value2);
-                    }
-                    Errored_defect_numb.Add(k);
-                }
+                    Var_vertical = 22;
+                    Var_horizontal = 20;
 
-                int n = k / (number_of_defs / 100 + 1);
-                Console.WriteLine(n);
-                String s = "Проверка " + n + "% ";
-                backgroundWorker1.ReportProgress(n, s); // Отправляем данные в ProgressChanged
-            }
-            backgroundWorker1.ReportProgress(100, "Проверено."); // Отправляем данные в ProgressChanged
-
-            if (Errors_finded > 0)
-            {
-                total_defs = $"Найдено - {Errors_finded} несоответствий.\n";
-                for (int i = 0; i < Errors_finded; i++)
-                {
-                    total_defs += $"\n{i + 1}) {Errored_defect_numb[i]} - {Errored_defect[i]}; ";
-                }
-                if (Errors_finded > 40)
-                {
-                    //System.IO.File.Create(Application.StartupPath.ToString() + @"\Отчеты");
-                    StreamWriter file = new StreamWriter(Application.StartupPath.ToString() + @"\Отчет\Отчёт.txt");
-                    file.Write(total_defs);
-                    file.Close();
-
-                    MessageBox.Show("Отчет создан в папке \"Отчёт\".", "Отчет");
+                    Var_f_range = "C6";//5?
+                    Var_f0_range = "C";
                 }
                 else
                 {
-                    MessageBox.Show(total_defs, "Отчет");
+                    Var_horizontal = 0;
+                    Var_vertical = 0;
+
+                    Var_f_range = "B6";
+                    Var_f0_range = "B";
+                    MessageBox.Show("Ошибка");
                 }
-            }
-            else
-            {
-                MessageBox.Show("Несоответствий не найдено.", "Отчет", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                button1.Enabled = true;
-                button1.PerformClick();
-            }
+                Excel.Worksheet Defectes_try_catch = (Excel.Worksheet)xlApp.Worksheets.get_Item("Дефекты_1");//Дефекты, поменять номер на тот что был в исходнике
+                Excel.Worksheet Wall_try_catch = (Excel.Worksheet)xlApp.Worksheets.get_Item(Var_element);//Стенка.швы (переделать на поиск по имени)
+                use_sheet("Дефекты_1");
+                Excel.Range S_range_try_catch = xlApp.get_Range("AI6", $"AI{Defectes_try_catch.UsedRange.Rows.Count}");//"A6", $"A{Defectes.UsedRange.Rows.Count}"
+                use_sheet(Var_element);
+                Excel.Range F_range_try_catch = Wall_try_catch.get_Range(Var_f_range, Var_f0_range + Wall_try_catch.UsedRange.Rows.Count);
+                try
+                {
+                    Excel.Range Find_in_Cycle_try_catch = S_range_try_catch.Find(2);//207 - проверочный
+                    Excel.Range Vertical_try_catch = Defectes_try_catch.Cells[Find_in_Cycle_try_catch.Row, Var_horizontal];
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Не найден поисковой столбец. Создание столбца...", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    создатьСтолбецToolStripMenuItem.PerformClick();
+                }
+                progressBar1.Value = 1;
+                progressBar1.Maximum = Defectes_try_catch.UsedRange.Rows.Count - 4;
+                int number_of_defs = Defectes_try_catch.UsedRange.Rows.Count - 5;
+                //Console.WriteLine(number_of_defs);
+                for (int k = 1; k <= number_of_defs; k++)//i = 1
+                {
+                
+
+                progressBar1.Value++;
+                    Excel.Range Find_in_Cycle_try_catch = S_range_try_catch.Find(k);//207 - проверочный
+                if (k == 1)
+                {
+                    Find_in_Cycle_try_catch = S_range_try_catch.Find(0.1);
+                }
+                try
+                    {
+                   Excel.Range Vertical_try_catch = Defectes_try_catch.Cells[Find_in_Cycle_try_catch.Row, Var_horizontal];//Вертикаль
+                    Excel.Range V_find_try_catch = F_range_try_catch.Find(Vertical_try_catch);//26
+                    Excel.Range Y_Main_orig_try_catch = Wall_try_catch.Cells[V_find_try_catch.Row, 6];// //Бордовый //Y_main
+                                                                                                          //Console.WriteLine("Worked5");
+                    
+                }
+                    catch (Exception)
+                    {
+                        Excel.Range Vertical_try_catch = Defectes_try_catch.Cells[Find_in_Cycle_try_catch.Row, Var_horizontal];
+                        Errors_finded++;
+                        if (Vertical_try_catch.Value2 == null)
+                        {
+                            Errored_defect.Add("Нет значения");
+                        }
+                        else
+                        {
+                            Errored_defect.Add(Vertical_try_catch.Value2);
+                        }
+                        Errored_defect_numb.Add(k);
+                        Error_find_prev = 1;
+                    }
+                if (Error_find_prev == 1)
+                    {
+                        Error_find_prev = 0;
+                        continue;
+                    }
+                    try
+                    {
+                        Excel.Range Vertical_try_catch = Defectes_try_catch.Cells[Find_in_Cycle_try_catch.Row, Var_vertical];//Вертикаль
+                        Excel.Range V_find_try_catch = F_range_try_catch.Find(Vertical_try_catch);//26
+                        Excel.Range Y_Main_orig_try_catch = Wall_try_catch.Cells[V_find_try_catch.Row, 6];// //Бордовый //Y_main
+                    }
+                    catch (Exception)
+                    {
+                        Excel.Range Vertical_try_catch = Defectes_try_catch.Cells[Find_in_Cycle_try_catch.Row, Var_vertical];
+                        Errors_finded++;
+                        if (Vertical_try_catch.Value2 == null)
+                        {
+                            Errored_defect.Add("Нет значения");
+                        }
+                        else
+                        {
+                            Errored_defect.Add(Vertical_try_catch.Value2);
+                        }
+                        Errored_defect_numb.Add(k);
+                    }
+
+                int n = k / (number_of_defs / 100 + 1);
+                    //Console.WriteLine(n);
+                    String s = "Проверка " + n + "% ";
+                    backgroundWorker1.ReportProgress(n, s); // Отправляем данные в ProgressChanged
+                }
+                backgroundWorker1.ReportProgress(100, "Проверено."); // Отправляем данные в ProgressChanged
+            if (Errors_finded > 0)
+                {
+                    total_defs = $"Найдено - {Errors_finded} несоответствий.\n";
+                    for (int i = 0; i < Errors_finded; i++)
+                    {
+                        total_defs += $"\n{i + 1}) {Errored_defect_numb[i]} - {Errored_defect[i]}; ";
+                    }
+                    if (Errors_finded > 10)
+                    {
+                        //System.IO.File.Create(Application.StartupPath.ToString() + @"\Отчеты");
+                        StreamWriter file = new StreamWriter(Application.StartupPath.ToString() + @"\Отчет\Отчёт.txt");
+                        file.Write(total_defs);
+                        file.Close();
+
+                        MessageBox.Show("Отчет создан в папке \"Отчёт\".", "Отчет");
+                    }
+                    else
+                    {
+                        MessageBox.Show(total_defs, "Отчет");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Несоответствий не найдено.", "Отчет", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    button1.Enabled = true;
+                }
+            
         }
 
         private void создатьСтолбецToolStripMenuItem_Click(object sender, EventArgs e)
@@ -978,10 +1102,11 @@ namespace Wall_def
             use_sheet("Дефекты_1");
             Excel.Range F_range_creating = Defectes_creating.get_Range("AI6", $"AI{Defectes_creating.UsedRange.Rows.Count}");//"A6", $"A{Defectes.UsedRange.Rows.Count}"
             F_range_creating.Cells[1, 1] = String.Format("'0.1");
+            
 
             int number_of_defs = Defectes_creating.UsedRange.Rows.Count - 5;
 
-            Console.WriteLine(number_of_defs.ToString());
+            //Console.WriteLine(number_of_defs.ToString());
 
             for (int i = 2; i <= number_of_defs; i++)//i = 1
             {
@@ -1017,7 +1142,6 @@ namespace Wall_def
             // или прямо тут можно что-то считать =)
         }
 
-
         public static double Find_deg(double x_0, double y_0, double xv_1, double yv_1)
         {
             double res_H;
@@ -1046,16 +1170,12 @@ namespace Wall_def
                 res_H += 360;
             }
 
-
-
-
             double RadianToDegree_circle(double angle)
             {
                 angle = Math.Atan(angle);
                 angle = angle * 180.0 / Math.PI;
                 return angle;
             }
-
 
             return res_H;
         }
@@ -1068,10 +1188,8 @@ namespace Wall_def
             x_2 = x_0 + (x_Rotate - x_0) * Math.Cos(deg);// - ()
             y_2 = y_0 + (x_Rotate - x_0) * Math.Sin(deg);
 
-
             x_2 = Math.Round(x_2, 4);
             y_2 = Math.Round(y_2, 4);
-
 
             if (axis == "x")
             {
@@ -1088,6 +1206,7 @@ namespace Wall_def
             angle = angle * Math.PI / 180.0;
             return angle;
         }
+
         //public
         static private Point Intersection(Point A, Point B, Point C, Point D)
         {
@@ -1104,6 +1223,7 @@ namespace Wall_def
 
             return new Point(x, y);
         }
+
         //left = x < 0; right = x > 0.
         static public double const_quarter(double income_deg, int step, double X_Left_Right = 0)
         {
@@ -1136,20 +1256,21 @@ namespace Wall_def
             }
             return outcome_deg;
         }
-
     }
 
-    class Point
+    internal class Point
     {
-        public double X { get; set; }   
+        public double X { get; set; }
         public double Y { get; set; }
-        public Point() { }
+
+        public Point()
+        {
+        }
+
         public Point(double x, double y)
         {
             X = x;
             Y = y;
         }
     }
-
 }
-
